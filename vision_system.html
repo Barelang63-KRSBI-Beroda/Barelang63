@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Barelang 63</title>
+  <link rel="icon" href="./images/Logo_Barelang_63_trasparan.png" type="image/x-icon">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"/>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <div class="logo-wrapper">
+      <img src="./images/Logo_Barelang_63_trasparan.png" alt="Barelang 63 Logo" class="logo" />
+    </div>
+    
+    <nav class="navbar">
+      <a href="home.html">Home</a>
+      <a href="divisions.html">Divisions</a>
+      <a href="robot.html">Robots</a>
+      <a href="installations.html">Installations</a>
+      <a href="publications.html">Publications</a>
+    </nav>
+    
+    <a href="contact.html">
+      <button class="navbar-contact-button" data-tab="contact">Contact Us</button>
+    </a>
+  </div>
+
+  <section>
+    <div class="driver-text">
+        <h1>Install CUDA and cuDNN</h1>
+        <p>You can install CUDA from this link :</p>
+        <p><a href="https://developer.nvidia.com/cuda-toolkit-archive">CUDA</a></p>
+        <p>You can install cuDNN from this link :</p>
+        <p><a href="https://developer.nvidia.com/cudnn-archive">cuDNN</a></p>
+
+        <h1>Install Zed SDK</h1>
+        <p>You can install Zed SDK from this link :</p>
+        <p><a href="https://www.stereolabs.com/docs/installation/linux">Zed SDK</a></p>
+
+        <h1>OpenCV with CUDA and cuDNN</h1>
+        <p>Install OpenCV from this source with CUDA activation</p>
+        <pre><code>
+        sudo rm -r /usr/include/opencv4/opencv2
+        </code></pre>
+
+        <p>1. Install dependencies</p>
+        <pre><code>
+          sudo apt-get update
+          sudo apt-get install -y libgtk2.0-dev pkg-config build-essential cmake git \
+              libatlas-base-dev gfortran python3-dev \
+              libtbb2 libtbb-dev libjpeg-dev libpng-dev libtiff-dev \
+              libavcodec-dev libavformat-dev libswscale-dev \
+        </code></pre>
+
+        <p>2. Clone repository OpenCV and OpenCV_contrib :</p>
+        <pre><code>
+          git clone https://github.com/opencv/opencv.git
+          git clone https://github.com/opencv/opencv_contrib.git
+        </code></pre>
+
+        <p>3. Make folder build</p>
+        <pre><code>
+          cd opencv
+          mkdir build
+          cd build
+        </code></pre>
+
+        <p>4. Build OpenCV</p>
+        <p>Before that please check if you have CUDA_ARCH_BIN on your system, with this command :</p>
+        <pre><code>
+          nvidia-smi --query-gpu=compute_cap --format=csv
+        </code></pre>
+        <p>input the value of CUDA_ARCH_BIN, based on the output of the command line above. Build opencv with Cuda activation with the command below: </p>
+        <pre><code>
+          cmake -D CMAKE_BUILD_TYPE=RELEASE \
+                -D CMAKE_INSTALL_PREFIX=/usr/local \
+                -D WITH_CUDA=ON \
+                -D WITH_CUDNN=ON \
+                -D OPENCV_DNN_CUDA=ON \
+                -D OPENCV_EXTRA_MODULES_PATH=../../opencv_contrib/modules \
+                -D INSTALL_PYTHON_EXAMPLES=OFF \
+                -D INSTALL_C_EXAMPLES=OFF \
+                -D WITH_GTK=ON \
+                -D WITH_QT=OFF \
+                -D BUILD_EXAMPLES=ON \
+                -D CUDA_ARCH_BIN=8.6 \
+                -D WITH_FFMPEG=ON \
+                ..
+        </code></pre>
+        <p>5. If the build process is complete install opencv.</p>
+        <pre><code>
+          make -j$(nproc)
+          sudo make install
+          sudo ldconfig
+        </code></pre>
+
+        <h1>Making file opencv4.pc for OpenCV</h1>
+        <p>1. Make file oepncv4.pc</p>
+        <p>Create a file named opencv4.pc in the /usr/local/lib/pkgconfig/ or /usr/lib/pkgconfig/ directory. Use a text editor like nano to create this file :</p>
+        <pre><code>
+          sudo mkdir -p /usr/local/lib/pkgconfig/
+          sudo nano /usr/local/lib/pkgconfig/opencv4.pc
+        </code></pre>
+        <p>2. Contents of opencv4.pc File</p>
+        <p>Fill in the opencv4.pc file as follows, adjust the library path (libdir) and header (includedir) if needed and fill in the opencv version based on the version that has been installed :<p>
+        <pre><code>
+          prefix=/usr/local
+          exec_prefix=${prefix}
+          libdir=${exec_prefix}/lib
+          includedir=${prefix}/include/opencv4
+
+          Name: OpenCV
+          Description: Open Source Computer Vision Library
+          Version: 4.10.0
+          Libs: -L${libdir} -lopencv_core -lopencv_imgproc -lopencv_highgui -lopencv_imgcodecs -lopencv_videoio
+          Cflags: -I${includedir}
+        </code></pre>
+        <p>
+          - prefix: OpenCV installation location on the system (usually /usr/local).
+          - libdir: Path to the OpenCV library directory (/usr/local/lib).
+          - includedir: Path to the OpenCV header (/usr/local/include/opencv4).
+          - Libs: List of libraries to use.
+          - Cflags: Path to header files required for code compilation.
+          
+          Be sure to customize the OpenCV version according to what is installed.
+        </p>
+        <p>3. Set Variable PKG_CONFIG_PATH</p>
+        <p>Add the directory where the opencv4.pc file is located to the PKG_CONFIG_PATH variable, so that pkg-config can detect it :</p>
+        <pre><code>
+          export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/usr/local/lib/pkgconfig/
+        </code></pre>
+        <p>To make this change permanent, add the above command to the .bashrc file :</p>
+        <pre><code>
+          echo 'export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/usr/local/lib/pkgconfig/' >> ~/.bashrc
+          source ~/.bashrc
+        </code></pre>
+        <p>4. Check Version with pkg-config</p>
+        <p>After the opencv4.pc file is created, check whether OpenCV has been detected by pkg-config with the following command: </p>
+        <pre><code>
+          pkg-config --modversion opencv4
+        </code></pre>
+        <p>If successful, the above command will display the OpenCV version, which is 4.10.0.</p>
+    </div>
+  </section>
+
+  <div class="footer">
+    <div class="footer-content">
+      <div class="footer-column">
+        <img src="./images/logo barelang aja.jpeg" alt="Barelang 63" class="footer-logo" />
+        <div class="social-icons">
+          <a href="https://www.instagram.com/barelang63/"><i class="fab fa-instagram"></i></a>
+          <a href="https://www.youtube.com/@Barelang63_Official"><i class="fab fa-youtube"></i></a>
+          <a href="https://github.com/Barelang63-BRAIL?tab=overview&from=2025-04-01&to=2025-04-30"><i class="fab fa-github"></i></a>
+        </div>
+      </div>
+
+      <div class="footer-column">
+        <h4>Quick as</h4>
+        <ul>
+          <li><a href="robot.html">Robot</a></li>
+          <li><a href="installations.html">Installations</a></li>
+          <li><a href="publications.html">Publications</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-column">
+        <h4>Divisions</h4>
+        <ul>
+          <li><a href="divisions.html">Mechanical</a></li>
+          <li><a href="divisions.html">Electrical</a></li>
+          <li><a href="divisions.html">Programmer</a></li>
+          <li><a href="divisions.html">Vision</a></li>
+        </ul>
+      </div>
+  
+      <div class="footer-column">
+        <h4>Contact Information</h4>
+        <ul class="contact-info">
+          <li><i class="fas fa-envelope"></i> barelangkrsbi@gmail.com</li>
+          <li><i class="fas fa-map-marker-alt"></i> Jl. Ahmad Yani, Tlk.Tering, Kota Batam</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
